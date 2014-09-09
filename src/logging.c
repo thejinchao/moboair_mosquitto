@@ -103,8 +103,10 @@ int _mosquitto_log_printf(struct mosquitto *mosq, int priority, const char *fmt,
 	char *sp;
 #endif
 	const char *topic;
+	char str_time[64];
 	int syslog_priority;
 	time_t now = time(NULL);
+	strftime(str_time, 64, "[%m-%d %H:%M:%S]", localtime(&now));
 
 	if((log_priorities & priority) && log_destinations != MQTT3_LOG_NONE){
 		switch(priority){
@@ -183,7 +185,7 @@ int _mosquitto_log_printf(struct mosquitto *mosq, int priority, const char *fmt,
 
 		if(log_destinations & MQTT3_LOG_STDOUT){
 			if(int_db.config && int_db.config->log_timestamp){
-				fprintf(stdout, "%d: %s\n", (int)now, s);
+				fprintf(stdout, "%s: %s\n", str_time, s);
 			}else{
 				fprintf(stdout, "%s\n", s);
 			}
@@ -191,7 +193,7 @@ int _mosquitto_log_printf(struct mosquitto *mosq, int priority, const char *fmt,
 		}
 		if(log_destinations & MQTT3_LOG_STDERR){
 			if(int_db.config && int_db.config->log_timestamp){
-				fprintf(stderr, "%d: %s\n", (int)now, s);
+				fprintf(stderr, "%s: %s\n", str_time, s);
 			}else{
 				fprintf(stderr, "%s\n", s);
 			}
@@ -199,7 +201,7 @@ int _mosquitto_log_printf(struct mosquitto *mosq, int priority, const char *fmt,
 		}
 		if(log_destinations & MQTT3_LOG_FILE && int_db.config->log_fptr){
 			if(int_db.config && int_db.config->log_timestamp){
-				fprintf(int_db.config->log_fptr, "%d: %s\n", (int)now, s);
+				fprintf(int_db.config->log_fptr, "%s: %s\n", str_time, s);
 			}else{
 				fprintf(int_db.config->log_fptr, "%s\n", s);
 			}
@@ -220,7 +222,7 @@ int _mosquitto_log_printf(struct mosquitto *mosq, int priority, const char *fmt,
 					_mosquitto_free(s);
 					return MOSQ_ERR_NOMEM;
 				}
-				snprintf(st, len, "%d: %s", (int)now, s);
+				snprintf(st, len, "%s: %s", str_time, s);
 				mqtt3_db_messages_easy_queue(&int_db, NULL, topic, 2, strlen(st), st, 0);
 				_mosquitto_free(st);
 			}else{

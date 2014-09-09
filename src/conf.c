@@ -213,6 +213,8 @@ void mqtt3_config_init(struct mqtt3_config *config)
 	config->auth_plugin = NULL;
 	config->verbose = false;
 	config->message_size_limit = 0;
+	config->keep_alive_range = 1.5f;
+	config->log_ping = 0;
 }
 
 void mqtt3_config_cleanup(struct mqtt3_config *config)
@@ -1705,6 +1707,22 @@ int _config_read_file(struct mqtt3_config *config, bool reload, const char *file
 #else
 					_mosquitto_log_printf(NULL, MOSQ_LOG_WARNING, "Warning: Bridge support not available.");
 #endif
+				}else if(!strcmp(token, "keep_alive_range")) {
+					token = strtok_r(NULL, " ", &saveptr);
+					if(token){
+						config->keep_alive_range = atof(token);
+						if(config->keep_alive_range<1.f) config->keep_alive_range = 1.f;
+						else if(config->keep_alive_range>10.f) config->keep_alive_range = 10.f;
+					}else{
+						_mosquitto_log_printf(NULL, MOSQ_LOG_ERR, "Error: Wrong keep_alive_range value in configuration.");
+					}		
+				}else if(!strcmp(token, "log_ping")) {
+					token = strtok_r(NULL, " ", &saveptr);
+					if(token){
+						config->log_ping = (atoi(token)!=0 ? 1 : 0);
+					}else{
+						_mosquitto_log_printf(NULL, MOSQ_LOG_ERR, "Error: Wrong log_ping value in configuration.");
+					}		
 				}else if(!strcmp(token, "trace_level")
 						|| !strcmp(token, "ffdc_output")
 						|| !strcmp(token, "max_log_entries")

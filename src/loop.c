@@ -146,7 +146,7 @@ int mosquitto_main_loop(struct mosquitto_db *db, int *listensock, int listensock
 					/* Local bridges never time out in this fashion. */
 					if(!(db->contexts[i]->keepalive) 
 							|| db->contexts[i]->bridge
-							|| now - db->contexts[i]->last_msg_in < (time_t)(db->contexts[i]->keepalive)*3/2){
+							|| now - db->contexts[i]->last_msg_in < (time_t)((db->contexts[i]->keepalive)*(db->config->keep_alive_range))){
 
 						if(mqtt3_db_message_write(db->contexts[i]) == MOSQ_ERR_SUCCESS){
 							pollfds[pollfd_index].fd = db->contexts[i]->sock;
@@ -162,7 +162,10 @@ int mosquitto_main_loop(struct mosquitto_db *db, int *listensock, int listensock
 						}
 					}else{
 						if(db->config->connection_messages == true){
-							_mosquitto_log_printf(NULL, MOSQ_LOG_NOTICE, "Client %s has exceeded timeout, disconnecting.", db->contexts[i]->id);
+							_mosquitto_log_printf(NULL, MOSQ_LOG_NOTICE, 
+								"Client %s has exceeded timeout, disconnecting. keepalive=%d*%f, last_msg_in=%d", 
+								db->contexts[i]->id, (int)(db->contexts[i]->keepalive), db->config->keep_alive_range,
+								(int)(now - db->contexts[i]->last_msg_in));
 						}
 						/* Client has exceeded keepalive*1.5 */
 						mqtt3_context_disconnect(db, db->contexts[i]);
@@ -306,11 +309,11 @@ int mosquitto_main_loop(struct mosquitto_db *db, int *listensock, int listensock
 	return MOSQ_ERR_SUCCESS;
 }
 
-static void do_disconnect(struct mosquitto_db *db, int context_index)
+static void do_disconnect(struct mosquitto_db *db, int context_index, const char* reason)
 {
 	if(db->config->connection_messages == true){
 		if(db->contexts[context_index]->state != mosq_cs_disconnecting){
-			_mosquitto_log_printf(NULL, MOSQ_LOG_NOTICE, "Socket error on client %s, disconnecting.", db->contexts[context_index]->id);
+			_mosquitto_log_printf(NULL, MOSQ_LOG_NOTICE, "Socket error on client %s, disconnecting[REASON: %s].", db->contexts[context_index]->id, reason);
 		}else{
 			_mosquitto_log_printf(NULL, MOSQ_LOG_NOTICE, "Client %s disconnected.", db->contexts[context_index]->id);
 		}
@@ -328,7 +331,9 @@ static void loop_handle_errors(struct mosquitto_db *db, struct pollfd *pollfds)
 	for(i=0; i<db->context_count; i++){
 		if(db->contexts[i] && db->contexts[i]->sock != INVALID_SOCKET){
 			if(pollfds[db->contexts[i]->pollfd_index].revents & (POLLERR | POLLNVAL)){
-				do_disconnect(db, i);
+				char temp[64];
+				sprintf(temp, "revents=%d", pollfds[db->contexts[i]->pollfd_index].revents);
+				do_disconnect(db, i, temp);
 			}
 		}
 	}
@@ -348,8 +353,11 @@ static void loop_handle_reads_writes(struct mosquitto_db *db, struct pollfd *pol
 #else
 			if(pollfds[db->contexts[i]->pollfd_index].revents & POLLOUT){
 #endif
-				if(_mosquitto_packet_write(db->contexts[i])){
-					do_disconnect(db, i);
+				int err = _mosquitto_packet_write(db->contexts[i]);
+				if(err){
+					char temp[64];
+					sprintf(temp, "write_err=%d", err);
+					do_disconnect(db, i, temp);
 				}
 			}
 		}
@@ -361,14 +369,19 @@ static void loop_handle_reads_writes(struct mosquitto_db *db, struct pollfd *pol
 #else
 			if(pollfds[db->contexts[i]->pollfd_index].revents & POLLIN){
 #endif
-				if(_mosquitto_packet_read(db, db->contexts[i])){
-					do_disconnect(db, i);
+				int err = _mosquitto_packet_read(db, db->contexts[i]); 
+				if(err){
+					char temp[64];
+					sprintf(temp, "read_err=%d", err);
+					do_disconnect(db, i, temp);
 				}
 			}
 		}
 		if(db->contexts[i] && db->contexts[i]->sock != INVALID_SOCKET){
 			if(pollfds[db->contexts[i]->pollfd_index].revents & (POLLERR | POLLNVAL)){
-				do_disconnect(db, i);
+				char temp[64];
+				sprintf(temp, "revents= %d", pollfds[db->contexts[i]->pollfd_index].revents);
+				do_disconnect(db, i, temp);
 			}
 		}
 	}

@@ -48,7 +48,7 @@ int _mosquitto_packet_handle(struct mosquitto *mosq)
 
 	switch((mosq->in_packet.command)&0xF0){
 		case PINGREQ:
-			return _mosquitto_handle_pingreq(mosq);
+			return _mosquitto_handle_pingreq(0, mosq);
 		case PINGRESP:
 			return _mosquitto_handle_pingresp(mosq);
 		case PUBACK:

@@ -34,7 +34,7 @@ struct mosquitto_db;
 
 int _mosquitto_packet_handle(struct mosquitto *mosq);
 int _mosquitto_handle_connack(struct mosquitto *mosq);
-int _mosquitto_handle_pingreq(struct mosquitto *mosq);
+int _mosquitto_handle_pingreq(int log_ping, struct mosquitto *mosq);
 int _mosquitto_handle_pingresp(struct mosquitto *mosq);
 int _mosquitto_handle_pubackcomp(struct mosquitto *mosq, const char *type);
 int _mosquitto_handle_publish(struct mosquitto *mosq);

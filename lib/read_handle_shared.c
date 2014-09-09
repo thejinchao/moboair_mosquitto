@@ -44,18 +44,21 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "mosquitto_broker.h"
 #endif
 
-int _mosquitto_handle_pingreq(struct mosquitto *mosq)
+int _mosquitto_handle_pingreq(int log_ping, struct mosquitto *mosq)
 {
+	int priority = ((log_ping!=0) ? MOSQ_LOG_INFO : MOSQ_LOG_DEBUG);
+
 	assert(mosq);
 #ifdef WITH_STRICT_PROTOCOL
 	if(mosq->in_packet.remaining_length != 0){
 		return MOSQ_ERR_PROTOCOL;
 	}
 #endif
+
 #ifdef WITH_BROKER
-	_mosquitto_log_printf(NULL, MOSQ_LOG_DEBUG, "Received PINGREQ from %s", mosq->id);
+	_mosquitto_log_printf(NULL, priority, "Received PINGREQ from %s", mosq->id);
 #else
-	_mosquitto_log_printf(mosq, MOSQ_LOG_DEBUG, "Client %s received PINGREQ", mosq->id);
+	_mosquitto_log_printf(mosq, priority, "Client %s received PINGREQ", mosq->id);
 #endif
 	return _mosquitto_send_pingresp(mosq);
 }

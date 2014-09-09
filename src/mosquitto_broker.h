@@ -122,6 +122,8 @@ struct mqtt3_config {
 	char *auth_plugin;
 	struct mosquitto_auth_opt *auth_options;
 	int auth_option_count;
+	float keep_alive_range;
+	int log_ping;
 };
 
 struct _mosquitto_subleaf {

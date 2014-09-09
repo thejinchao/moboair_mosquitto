@@ -50,7 +50,7 @@ int mqtt3_packet_handle(struct mosquitto_db *db, struct mosquitto *context)
 
 	switch((context->in_packet.command)&0xF0){
 		case PINGREQ:
-			return _mosquitto_handle_pingreq(context);
+			return _mosquitto_handle_pingreq(db->config->log_ping, context);
 		case PINGRESP:
 			return _mosquitto_handle_pingresp(context);
 		case PUBACK:
