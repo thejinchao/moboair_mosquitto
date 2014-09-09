@@ -145,7 +145,7 @@ void print_usage(void)
 
 	mosquitto_lib_version(&major, &minor, &revision);
 	printf("mosquitto_sub is a simple mqtt client that will subscribe to a single topic and print all messages it receives.\n");
-	printf("mosquitto_sub version %s running on libmosquitto %d.%d.%d.\n\n", VERSION, major, minor, revision);
+	printf("mosquitto_sub version %s running on libmosquitto %d.%d.%d (build date %s).\n\n", VERSION, major, minor, revision, TIMESTAMP);
 	printf("Usage: mosquitto_sub [-c] [-h host] [-k keepalive] [-p port] [-q qos] [-R] -t topic ...\n");
 	printf("                     [-T filter_out]\n");
 #ifdef WITH_SRV

@@ -84,7 +84,7 @@ int base64_encode(unsigned char *in, unsigned int in_len, char **encoded)
 
 void print_usage(void)
 {
-	printf("mosquitto_passwd is a tool for managing password files for mosquitto.\n\n");
+	printf("mosquitto_passwd is a tool for managing password files for mosquitto(build date %s).\n\n", TIMESTAMP);
 	printf("Usage: mosquitto_passwd [-c | -D] passwordfile username\n");
 	printf("       mosquitto_passwd -U passwordfile\n");
 	printf(" -c : create a new password file. This will overwrite existing files.\n");

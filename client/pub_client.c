@@ -218,7 +218,7 @@ void print_usage(void)
 
 	mosquitto_lib_version(&major, &minor, &revision);
 	printf("mosquitto_pub is a simple mqtt client that will publish a message on a single topic and exit.\n");
-	printf("mosquitto_pub version %s running on libmosquitto %d.%d.%d.\n\n", VERSION, major, minor, revision);
+	printf("mosquitto_pub version %s running on libmosquitto %d.%d.%d (build date %s).\n\n", VERSION, major, minor, revision, TIMESTAMP);
 	printf("Usage: mosquitto_pub [-h host] [-p port] [-q qos] [-r] {-f file | -l | -n | -m message} -t topic\n");
 #ifdef WITH_SRV
 	printf("                     [-A bind_address] [-S]\n");
